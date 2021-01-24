@@ -387,23 +387,24 @@ def predict_genotype(eqs, allele_idx, allele_eq, em_results, gene_count,
         zy = min(a1_count/a2_count, a2_count/a1_count)
         _a1 = a1
         _a2 = a2
-        if a1_count > a2_count:
-            a1 = _a1
-            a2 = _a2
-        else:
+        _a1_count = a1_count
+        _a2_count = a2_count
+        if a1_count < a2_count:
             a1 = _a2
             a2 = _a1
+            a1_count = _a2_count
+            a2_count = _a1_count
         
     else:
         a1, alleles, _ = em_results[0]
         pair_count = get_count(a1)
         a1_count = pair_count
-        a2_count = None
+        a2_count = np.nan
         genotype = [process_allele(alleles[0], 3),]
         a2 = ""
         zy = np.nan
         
-    return genotype, pair_count, zy, a1, a2
+    return genotype, pair_count, zy, a1, a2, a1_count, a2_count
 
 def genotype_gene(gene, gene_count, eqs, lengths, allele_idx, population, 
                   prior, tolerance, max_iterations, drop_iterations, 
@@ -436,7 +437,7 @@ def genotype_gene(gene, gene_count, eqs, lengths, allele_idx, population,
         log.info('\t\t{: <20}    {: >8.2f}%'
                  .format(process_allele(alleles[0], 3), abundance*100))
     
-    genotype, pair_count, zy, a1, a2 = predict_genotype(eqs, 
+    genotype, pair_count, zy, a1, a2, a1_count, a2_count = predict_genotype(eqs, 
                                            allele_idx, 
                                            allele_eq, 
                                            em_results,
@@ -453,7 +454,7 @@ def genotype_gene(gene, gene_count, eqs, lengths, allele_idx, population,
     for allele in genotype:
         log.info(f'\t\t{allele}')
     
-    return em_results, genotype, zy, a1, a2
+    return em_results, genotype, zy, a1, a2, a1_count, a2_count
 
 #-----------------------------------------------------------------------------
 # Runs genotyping
@@ -739,7 +740,7 @@ if __name__ == '__main__':
     log.info(f'\t\tzygosity threshold: %s', args.zygosity_threshold)
     
     # For each HLA locus, perform EM then scoring
-    list_zygosity = []
+    list_fullinfo = []
     for gene in args.genes:
         hline()
         log.info(f'[genotype] Genotyping HLA-{gene}')
@@ -753,7 +754,7 @@ if __name__ == '__main__':
                  f'in {eq_count} classes')
             
             
-        em, genotype, zy, a1, a2 = genotype_gene(gene,
+        em, genotype, zy, a1, a2, a1_count, a2_count = genotype_gene(gene,
                                      gene_count,
                                      eq_idx[gene], 
                                      lengths, 
@@ -765,12 +766,13 @@ if __name__ == '__main__':
                                             
         em_results[gene] = em
         genotypes[gene] = genotype
-        list_zygosity.append([gene, a1, a2, zy])
+        list_fullinfo.append([gene, a1, a2, a1_count, a2_count, zy])
             
     with open(''.join([outdir, sample, '.genotype.json']), 'w') as file:
             json.dump(genotypes, file)
     
-    pd.DataFrame(list_zygosity, columns=['Locus', 'Major', 'Minor', 'minor/major']
+    pd.DataFrame(list_fullinfo, columns=['Locus', 'Major Allele', 'Minor Allele', 
+    'Major Allele count', 'Minor Allele count', 'minor/major']
     ).to_csv(''.join([outdir, sample, '.full.csv']), index=False)
             
     remove_files(temp, args.keep_files)
