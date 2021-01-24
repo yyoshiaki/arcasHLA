@@ -770,7 +770,8 @@ if __name__ == '__main__':
     with open(''.join([outdir, sample, '.genotype.json']), 'w') as file:
             json.dump(genotypes, file)
     
-    pd.DataFrame(list_zygosity, columns=['Locus', 'Major', 'Minor', 'minor/major']).to_csv(''.join([outdir, sample, '.zygosity.csv']), index=False)
+    pd.DataFrame(list_zygosity, columns=['Locus', 'Major', 'Minor', 'minor/major']
+    ).to_csv(''.join([outdir, sample, '.full.csv']), index=False)
             
     remove_files(temp, args.keep_files)
     
