@@ -362,14 +362,17 @@ def predict_genotype(eqs, allele_idx, allele_eq, em_results, gene_count,
             log.info('[genotype] Unable to distinguish ' +
                      'between minor and major alleles')
             genotype = [a1, a2]
+            zy = np.nan
         elif a1_count == 0:
             log.info('[genotype] Likely heterozygous: minor allele has no '+
                      'nonshared reads')
             genotype = [a2]
+            zy = np.nan
         elif a2_count == 0:
             log.info('[genotype] Likely heterozygous: minor allele has no '+
                      'nonshared reads')
             genotype = [a1]
+            zy = np.nan
         elif min(a1_count/a2_count, a2_count/a1_count) < zygosity_threshold:
             log.info(f'[genotype] Likely homozygous: minor/major '+
                       'nonshared count {:.2f}'
@@ -378,13 +381,14 @@ def predict_genotype(eqs, allele_idx, allele_eq, em_results, gene_count,
                 genotype = [a1]
             else:
                 genotype = [a2]
+            zy = min(a1_count/a2_count, a2_count/a1_count)
         else:
             log.info(f'[genotype] Likely heterozygous: minor/major '+
                       'nonshared count {:.2f}'
                       .format(min(a1_count/a2_count, a2_count/a1_count)))
             genotype = [a1,a2]
+            zy = min(a1_count/a2_count, a2_count/a1_count)
         
-        zy = min(a1_count/a2_count, a2_count/a1_count)
         _a1 = a1
         _a2 = a2
         _a1_count = a1_count
