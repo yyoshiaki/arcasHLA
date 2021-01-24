@@ -2,3 +2,7 @@ clean_ref
 *.log
 __pycache__/
 arcashla_latest.sif
+test/output
+dat/IMGTHLA
+dat/ref/hla*
+test/test.bam.bai
