@@ -405,6 +405,7 @@ def predict_genotype(eqs, allele_idx, allele_eq, em_results, gene_count,
         a1_count = pair_count
         a2_count = np.nan
         genotype = [process_allele(alleles[0], 3),]
+        a1 = genotype[0]
         a2 = ""
         zy = np.nan
         
